@@ -1,0 +1,1 @@
+ C:\\Users\\asdas\\StudioProjects\\MIS_Lab2\\.dart_tool\\flutter_build\\4bdcadbce667bbe71ec9184bbb68f129\\native_assets.yaml: 
