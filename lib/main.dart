@@ -39,10 +39,13 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isGridView = false;
+  bool isCalendarView = true;
+  bool isGroupedView = false;
   DateTime _focusedDay = DateTime.now();
   List<SubjectData> subjects = [];
 
   late Map<DateTime, List<SubjectData>> subjectsByDate;
+  late Map<String, List<SubjectData>> subjectsByLocation;
   bool subjectsLoaded = false;
 
   @override
@@ -52,6 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (loadedSubjects != null) {
         subjects = loadedSubjects;
         subjectsByDate = _groupSubjectsByDate(subjects);
+        subjectsByLocation = _groupSubjectsByLocation(subjects);
         setState(() {
           subjectsLoaded = true;
         });
@@ -81,9 +85,27 @@ class _MyHomePageState extends State<MyHomePage> {
     prefs.setString('subjects', subjectsJson);
   }
 
-  void _toggleView() {
+  void setGridView() {
     setState(() {
-      isGridView = !isGridView;
+      isGridView = true;
+      isCalendarView = false;
+      isGroupedView = false;
+    });
+  }
+
+  void setCalendarView() {
+    setState(() {
+      isGridView = false;
+      isCalendarView = true;
+      isGroupedView = false;
+    });
+  }
+
+  void setLocationView() {
+    setState(() {
+      isGridView = false;
+      isCalendarView = false;
+      isGroupedView = true;
     });
   }
 
@@ -98,16 +120,10 @@ class _MyHomePageState extends State<MyHomePage> {
       subjects.add(updatedData);
     }
 
-
     subjectsByDate = _groupSubjectsByDate(subjects);
-
-
+    subjectsByLocation = _groupSubjectsByLocation(subjects);
     await _saveSubjectsToPrefs(subjects);
-
-
     _scheduleNotificationsForExams(subjects);
-
-
     setState(() {});
   }
 
@@ -171,6 +187,21 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
 
+  Map<String, List<SubjectData>> _groupSubjectsByLocation(List<SubjectData> subjects) {
+    Map<String, List<SubjectData>> groupedSubjects = {};
+
+    for (var subject in subjects) {
+      String location = subject.location;
+
+      if (groupedSubjects.containsKey(location)) {
+        groupedSubjects[location]!.add(subject);
+      } else {
+        groupedSubjects[location] = [subject];
+      }
+    }
+
+    return groupedSubjects;
+  }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
 
@@ -215,6 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
     String editedName = '';
     String editedYear = SubjectData.validYears.first;
     DateTime editedDateTime = DateTime.now();
+    String editedLocation = '';
     bool isSaveButtonEnabled = false;
     showDialog(
       context: context,
@@ -332,6 +364,15 @@ class _MyHomePageState extends State<MyHomePage> {
                       child: const Text('Edit time', style: TextStyle(fontSize: 12.0)),
                     ),
                   ),
+                  const SizedBox(height: 8.0),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Location'),
+                    onChanged: (value) {
+                      setState(() {
+                        editedLocation = value;
+                      });
+                    },
+                  )
                 ],
               ),
               actions: [
@@ -349,6 +390,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           name: editedName,
                           year: editedYear,
                           dateTime: editedDateTime,
+                          location: editedLocation,
                         ),
                         null,
                       );
@@ -382,8 +424,16 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.add),
           ),
           IconButton(
-            onPressed: _toggleView,
-            icon: Icon(isGridView ? Icons.calendar_today : Icons.grid_on),
+            onPressed: setGridView,
+            icon: Icon(isGridView ? Icons.grid_on : Icons.grid_on_outlined),
+          ),
+          IconButton(
+            onPressed: setCalendarView,
+            icon: Icon(isCalendarView ? Icons.calendar_today : Icons.calendar_today_outlined),
+          ),
+          IconButton(
+            onPressed: setLocationView,
+            icon: Icon(isGroupedView ? Icons.location_on : Icons.location_on_outlined),
           ),
         ],
       ),
@@ -418,7 +468,7 @@ class _MyHomePageState extends State<MyHomePage> {
             index: index,
           );
         },
-      )
+      ) : isGroupedView ? _buildGroupedView()
           : TableCalendar(
         focusedDay: _focusedDay,
         firstDay: DateTime(2000),
@@ -448,12 +498,33 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+
+  Widget _buildGroupedView() {
+    return ListView(
+      children: subjectsByLocation.keys.map((location) {
+        return ExpansionTile(
+          title: Text(location),
+          children: subjectsByLocation[location]!.map((subject) {
+            return ListTile(
+              title: Text(subject.name),
+              subtitle: Text(
+                DateFormat('d MMMM (EEEE) HH:mm').format(subject.dateTime),
+              ),
+
+            );
+          }).toList(),
+        );
+      }).toList(),
+    );
+  }
 }
 
 class SubjectData {
   String name;
   String year;
   DateTime dateTime;
+  String location;
 
   static const List<String> validYears = ['I', 'II', 'III', 'IV'];
 
@@ -461,6 +532,7 @@ class SubjectData {
     required this.name,
     required this.year,
     required this.dateTime,
+    required this.location,
   });
 
 
@@ -469,6 +541,7 @@ class SubjectData {
       'name': name,
       'year': year,
       'dateTime': dateTime.toIso8601String(),
+      'location': location,
     };
   }
 
@@ -478,6 +551,7 @@ class SubjectData {
       name: json['name'],
       year: json['year'],
       dateTime: DateTime.parse(json['dateTime']),
+      location: json['location'],
     );
   }
 }
@@ -503,12 +577,14 @@ class _SubjectWidgetState extends State<SubjectWidget> {
   late String _editedName;
   late String _editedYear;
   late DateTime _editedDateTime;
+  late String _editedLocation;
 
   @override
   void initState() {
     super.initState();
     _editedName = widget.subjectData.name;
     _editedDateTime = widget.subjectData.dateTime;
+    _editedLocation = widget.subjectData.location;
   }
 
   @override
@@ -539,6 +615,10 @@ class _SubjectWidgetState extends State<SubjectWidget> {
               DateFormat('d MMMM (EEEE) HH:mm').format(widget.subjectData.dateTime),
               style: const TextStyle(fontSize: 12.0, color: Colors.grey),
             ),
+            Text(
+              'Location: ${widget.subjectData.location}',
+              style: const TextStyle(fontSize: 12.0, color: Colors.grey),
+            ),
           ],
         ),
       ),
@@ -561,7 +641,7 @@ class _SubjectWidgetState extends State<SubjectWidget> {
             ),
             ElevatedButton(
               onPressed: () {
-                widget.onChangesSaved(SubjectData(name: '', year: '', dateTime: DateTime.now()), widget.index);
+                widget.onChangesSaved(SubjectData(name: '', year: '', dateTime: DateTime.now(), location: ''), widget.index);
                 Navigator.pop(context);
               },
               child: const Text('Delete'),
@@ -576,6 +656,7 @@ class _SubjectWidgetState extends State<SubjectWidget> {
     _editedName = widget.subjectData.name;
     _editedYear = widget.subjectData.year;
     _editedDateTime = widget.subjectData.dateTime;
+    _editedLocation = widget.subjectData.location;
     bool isSaveButtonEnabled = false;
 
     showDialog(
@@ -671,27 +752,40 @@ class _SubjectWidgetState extends State<SubjectWidget> {
                     ),
                   ),
                   const SizedBox(height: 8.0),
-                  ElevatedButton(
-                    onPressed: () async {
-                      TimeOfDay? picked = await showTimePicker(
-                        context: context,
-                        initialTime: TimeOfDay.fromDateTime(_editedDateTime),
-                      );
+                  Flexible(
+                    child:
+                    ElevatedButton(
+                      onPressed: () async {
+                        TimeOfDay? picked = await showTimePicker(
+                          context: context,
+                          initialTime: TimeOfDay.fromDateTime(_editedDateTime),
+                        );
 
-                      if (picked != null) {
-                        setState(() {
-                          _editedDateTime = DateTime(
-                            _editedDateTime.year,
-                            _editedDateTime.month,
-                            _editedDateTime.day,
-                            picked.hour,
-                            picked.minute,
-                          );
-                        });
-                      }
-                    },
-                    child: const Text('Edit time', style: TextStyle(fontSize: 12.0)),
+                        if (picked != null) {
+                          setState(() {
+                            _editedDateTime = DateTime(
+                              _editedDateTime.year,
+                              _editedDateTime.month,
+                              _editedDateTime.day,
+                              picked.hour,
+                              picked.minute,
+                            );
+                          });
+                        }
+                      },
+                      child: const Text('Edit time', style: TextStyle(fontSize: 12.0)),
+                    )
                   ),
+                  const SizedBox(height: 8.0),
+                  TextFormField(
+                    initialValue: _editedLocation,
+                    decoration: const InputDecoration(labelText: 'Location'),
+                    onChanged: (value) {
+                      setState(() {
+                        _editedLocation = value;
+                      });
+                    },
+                  )
                 ],
               ),
               actions: [
@@ -709,6 +803,7 @@ class _SubjectWidgetState extends State<SubjectWidget> {
                         name: _editedName,
                         year: _editedYear,
                         dateTime: _editedDateTime,
+                        location: _editedLocation,
                       ),
                       widget.index,
                     );
