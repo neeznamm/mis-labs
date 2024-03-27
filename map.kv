@@ -1,0 +1,97 @@
+#:import utils kivy.utils
+#:import CoreImage kivy.core.image.Image
+
+<CampusWidget>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#eceff1')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [(5, 5), (5, 5), (5, 5), (5, 5)]
+
+<BuildingWidget>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#e2e4e6')
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: -5, -5
+            blur_radius: 0
+            spread_radius: 0, 0
+            border_radius: 5, 5, 5, 5
+        Color:
+            rgba: utils.rgba('#ffffff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [(5, 5), (5, 5), (5, 5), (5, 5)]
+
+<RoomWidget>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#eceff1')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [(5, 5), (5, 5), (5, 5), (5, 5)]
+
+<RoomNamePill>:
+    # is always placed inside RoomWidget whis uses AnchorLayout
+    background_color: (0,0,0,0)
+    background_normal: ''
+    disabled: True
+    background_disabled_normal: self.background_normal
+    color: utils.rgba('#8895a3')
+    bold: True
+    font_size: 22
+    size_hint: None, None
+    width: self.texture_size[0]
+    height: self.texture_size[1]
+    padding: (25,10)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#e2e4e6')
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: (0, 0)
+            blur_radius: 10
+            spread_radius: 0, 0
+            border_radius: [25, 25, 25, 25]
+        Color:
+            rgba: (1,1,1,1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [25,]
+
+<RootWidget>:
+#    canvas.before:
+#        PushMatrix
+#        Scale:
+#            origin: 400, 300
+#            xyz: 1.0, 0.5, 1.0
+#        Rotate:
+#            angle: 45
+#            axis: 0, 0, 1
+#            origin: 400, 300, 0
+#    canvas.after:
+#        PopMatrix
+    CampusWidget:
+        height: 800
+        width: 800
+        BuildingWidget:
+            size_hint: (0.8, 0.8)
+            pos_hint: {'center_x':.5, 'center_y':.5}
+            RoomWidget:
+                size_hint: (0.2,0.5)
+                pos_hint: {'center_x':.13   , 'center_y':.5}
+                RoomNamePill:
+                    text: 'Лаб. 6'
+            RoomWidget:
+                size_hint: (0.5,0.3)
+                pos_hint: {'center_x':0.72, 'center_y':0.82}
+                RoomNamePill:
+                    text: 'Лаб. 23'
