@@ -1,0 +1,28 @@
+<RootWidget>:
+#    canvas.before:
+#        PushMatrix
+#        Scale:
+#            origin: 400, 300
+#            xyz: 1.0, 0.5, 1.0
+#        Rotate:
+#            angle: 45
+#            axis: 0, 0, 1
+#            origin: 400, 300, 0
+#    canvas.after:
+#        PopMatrix
+    CampusWidget:
+        height: 2000
+        width: 2000
+        BuildingWidget:
+            size_hint: (0.8, 0.8)
+            pos_hint: {'center_x':.5, 'center_y':.5}
+            RoomWidget:
+                size_hint: (0.2,0.5)
+                pos_hint: {'center_x':.13   , 'center_y':.5}
+                RoomNamePill:
+                    text: 'Лаб. 6'
+            RoomWidget:
+                size_hint: (0.5,0.3)
+                pos_hint: {'center_x':0.72, 'center_y':0.82}
+                RoomNamePill:
+                    text: 'Лаб. 23'

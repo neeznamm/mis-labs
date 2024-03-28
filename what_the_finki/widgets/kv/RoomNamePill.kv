@@ -1,0 +1,31 @@
+#:import utils kivy.utils
+
+<RoomNamePill>:
+    # is always placed inside RoomWidget whis uses AnchorLayout
+    background_color: (0,0,0,0)
+    background_normal: ''
+    disabled: True
+    background_disabled_normal: self.background_normal
+    color: utils.rgba('#8895a3')
+    bold: True
+    font_size: 22
+    size_hint: None, None
+    width: self.texture_size[0]
+    height: self.texture_size[1]
+    padding: (25,10)
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#e2e4e6')
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: (0, 0)
+            blur_radius: 10
+            spread_radius: 0, 0
+            border_radius: [25, 25, 25, 25]
+        Color:
+            rgba: (1,1,1,1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [25,]

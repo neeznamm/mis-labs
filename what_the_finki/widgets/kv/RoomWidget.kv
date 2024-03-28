@@ -1,0 +1,10 @@
+#:import utils kivy.utils
+
+<RoomWidget>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#eceff1')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [(5, 5), (5, 5), (5, 5), (5, 5)]

@@ -1,0 +1,19 @@
+#:import utils kivy.utils
+
+<BuildingWidget>:
+    canvas.before:
+        Color:
+            rgba: utils.rgba('#e2e4e6')
+        BoxShadow:
+            pos: self.pos
+            size: self.size
+            offset: -5, -5
+            blur_radius: 0
+            spread_radius: 0, 0
+            border_radius: 5, 5, 5, 5
+        Color:
+            rgba: utils.rgba('#ffffff')
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [(5, 5), (5, 5), (5, 5), (5, 5)]
